@@ -1,2 +1,2 @@
 # gateway
-API gateway(Go)
+API gateway(Golang)
