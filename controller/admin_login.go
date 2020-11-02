@@ -1,8 +1,15 @@
 package controller
 
 import (
+	"encoding/json"
+	"time"
+
+	"github.com/anthonyzero/gateway/dao"
 	"github.com/anthonyzero/gateway/dto"
 	"github.com/anthonyzero/gateway/middleware"
+	"github.com/anthonyzero/gateway/public"
+	"github.com/e421083458/golang_common/lib"
+	"github.com/gin-gonic/contrib/sessions"
 	"github.com/gin-gonic/gin"
 )
 
@@ -31,6 +38,33 @@ func (adminLogin *AdminLoginController) Login(c *gin.Context) {
 		middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
 		return
 	}
-	out := &dto.AdminLoginOutput{Token: params.UserName}
+	tx, err := lib.GetGormPool("default")
+	if err != nil {
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+	}
+	//查询用户信息
+	userInfo := &dao.Admin{}
+	userInfo, err = userInfo.LoginCheck(c, tx, params)
+	if err != nil {
+		middleware.ResponseError(c, middleware.CustomizeCode, err)
+		return
+	}
+
+	//设置session信息
+	sessInfo := &dto.AdminSessionInfo{
+		ID:        userInfo.Id,
+		UserName:  userInfo.UserName,
+		LoginTime: time.Now(),
+	}
+	sessBts, err := json.Marshal(sessInfo) //结构体转json
+	if err != nil {
+		middleware.ResponseError(c, middleware.CustomizeCode, err)
+		return
+	}
+	sess := sessions.Default(c)
+	sess.Set(public.AdminSessionInfoKey, string(sessBts))
+	sess.Save()
+
+	out := &dto.AdminLoginOutput{Token: userInfo.UserName}
 	middleware.ResponseSuccess(c, out)
 }
