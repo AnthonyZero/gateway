@@ -20,7 +20,7 @@ const (
 
 	InvalidRequestErrorCode ResponseCode = 401
 	CustomizeCode           ResponseCode = 1000
-
+	ParamCheckErrorCode     ResponseCode = 1001
 	GROUPALL_SAVE_FLOWERROR ResponseCode = 2001
 )
 
