@@ -55,6 +55,7 @@ github.com/gin-contrib/sse v0.0.0-20170109093832-22d885f9ecc7/go.mod h1:VJ0WA2NB
 github.com/gin-contrib/sse v0.0.0-20190301062529-5545eab6dad3/go.mod h1:VJ0WA2NBN22VlZ2dKZQPAPnyWw5XTlK1KymzLKsr59s=
 github.com/gin-gonic/contrib v0.0.0-20190526021735-7fb7810ed2a0 h1:R0oj52DmXWiPxZEedx/Uxxbvs6yB0l8hLgrubGpKsq4=
 github.com/gin-gonic/contrib v0.0.0-20190526021735-7fb7810ed2a0/go.mod h1:iqneQ2Df3omzIVTkIfn7c1acsVnMGiSLn4XF5Blh3Yg=
+github.com/gin-gonic/contrib v0.0.0-20201101042839-6a891bf89f19 h1:J2LPEOcQmWaooBnBtUDV9KHFEnP5LYTZY03GiQ0oQBw=
 github.com/gin-gonic/gin v1.3.0 h1:kCmZyPklC0gVdL728E6Aj20uYBJV93nj/TkwBTKhFbs=
 github.com/gin-gonic/gin v1.3.0/go.mod h1:7cKuhb5qV2ggCFctp2fJQ+ErvciLZrIeoOSOm6mUr7Y=
 github.com/gin-gonic/gin v1.4.0 h1:3tMoCCfM7ppqsR0ptz/wi1impNpT7/9wQtMZ8lr1mCQ=

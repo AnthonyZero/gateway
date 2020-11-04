@@ -18,6 +18,7 @@ const (
 	ValidErrorCode
 	InternalErrorCode
 
+	BusinessErrorCode       ResponseCode = 400
 	InvalidRequestErrorCode ResponseCode = 401
 	CustomizeCode           ResponseCode = 1000
 	ParamCheckErrorCode     ResponseCode = 1001

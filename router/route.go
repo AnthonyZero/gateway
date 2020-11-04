@@ -91,5 +91,15 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 		controller.AdminLoginRegister(adminLoginRouter)
 	}
 
+	adminRouter := router.Group("/admin")
+	adminRouter.Use(
+		sessions.Sessions("mysession", store),
+		middleware.RecoveryMiddleware(),
+		middleware.RequestLog(),
+		middleware.SessionAuthMiddleware(), //使用SessionAuth中间件 判断是否登录
+		middleware.TranslationMiddleware())
+	{
+		controller.AdminRegister(adminRouter)
+	}
 	return router
 }

@@ -1,4 +1,27 @@
 definitions:
+  dto.AdminInfoOutput:
+    properties:
+      avatar:
+        description: 头像
+        type: string
+      id:
+        description: 用户ID
+        type: integer
+      introduction:
+        description: 介绍
+        type: string
+      login_time:
+        description: 登录时间
+        type: string
+      name:
+        description: 用户名
+        type: string
+      roles:
+        description: 角色列表
+        items:
+          type: string
+        type: array
+    type: object
   dto.AdminLoginInput:
     properties:
       password:
@@ -36,6 +59,27 @@ definitions:
 info:
   contact: {}
 paths:
+  /admin/user_info:
+    get:
+      consumes:
+      - application/json
+      description: 管理员信息
+      operationId: /admin/user_info
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: success
+          schema:
+            allOf:
+            - $ref: '#/definitions/middleware.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/dto.AdminInfoOutput'
+              type: object
+      summary: 管理员信息
+      tags:
+      - 管理员接口
   /admin_login/login:
     post:
       consumes:

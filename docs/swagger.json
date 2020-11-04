@@ -4,6 +4,42 @@
         "contact": {}
     },
     "paths": {
+        "/admin/user_info": {
+            "get": {
+                "description": "管理员信息",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "管理员接口"
+                ],
+                "summary": "管理员信息",
+                "operationId": "/admin/user_info",
+                "responses": {
+                    "200": {
+                        "description": "success",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/middleware.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/dto.AdminInfoOutput"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
         "/admin_login/login": {
             "post": {
                 "description": "管理员登陆",
@@ -53,6 +89,38 @@
         }
     },
     "definitions": {
+        "dto.AdminInfoOutput": {
+            "type": "object",
+            "properties": {
+                "avatar": {
+                    "description": "头像",
+                    "type": "string"
+                },
+                "id": {
+                    "description": "用户ID",
+                    "type": "integer"
+                },
+                "introduction": {
+                    "description": "介绍",
+                    "type": "string"
+                },
+                "login_time": {
+                    "description": "登录时间",
+                    "type": "string"
+                },
+                "name": {
+                    "description": "用户名",
+                    "type": "string"
+                },
+                "roles": {
+                    "description": "角色列表",
+                    "type": "array",
+                    "items": {
+                        "type": "string"
+                    }
+                }
+            }
+        },
         "dto.AdminLoginInput": {
             "type": "object",
             "required": [
