@@ -1,6 +1,8 @@
 package dao
 
 import (
+	"strings"
+
 	"github.com/anthonyzero/gateway/public"
 	"github.com/e421083458/gorm"
 	"github.com/gin-gonic/gin"
@@ -31,4 +33,9 @@ func (t *LoadBalance) Find(c *gin.Context, tx *gorm.DB, search *LoadBalance) (*L
 	model := &LoadBalance{}
 	err := tx.SetCtx(public.GetGinTraceContext(c)).Where(search).Find(model).Error
 	return model, err
+}
+
+//获取负载均衡的IP列表
+func (t *LoadBalance) GetIPListByModel() []string {
+	return strings.Split(t.IpList, ",")
 }
