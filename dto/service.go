@@ -32,3 +32,12 @@ type ServiceListItemOutput struct {
 	Qpd         int64  `json:"qpd" form:"qpd"`                   //qpd
 	TotalNode   int    `json:"total_node" form:"total_node"`     //节点数
 }
+
+//服务删除 入参
+type ServiceDeleteInput struct {
+	ID int64 `json:"id" form:"id" comment:"服务ID" example:"10" validate:"required"` //服务ID
+}
+
+func (param *ServiceDeleteInput) BindValidParam(c *gin.Context) error {
+	return public.DefaultGetValidParams(c, param)
+}
