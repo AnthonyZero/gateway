@@ -35,6 +35,13 @@ func (t *LoadBalance) Find(c *gin.Context, tx *gorm.DB, search *LoadBalance) (*L
 	return model, err
 }
 
+func (t *LoadBalance) Save(c *gin.Context, tx *gorm.DB) error {
+	if err := tx.SetCtx(public.GetGinTraceContext(c)).Save(t).Error; err != nil {
+		return err
+	}
+	return nil
+}
+
 //获取负载均衡的IP列表
 func (t *LoadBalance) GetIPListByModel() []string {
 	return strings.Split(t.IpList, ",")

@@ -26,3 +26,10 @@ func (t *AccessControl) Find(c *gin.Context, tx *gorm.DB, search *AccessControl)
 	err := tx.SetCtx(public.GetGinTraceContext(c)).Where(search).Find(model).Error
 	return model, err
 }
+
+func (t *AccessControl) Save(c *gin.Context, tx *gorm.DB) error {
+	if err := tx.SetCtx(public.GetGinTraceContext(c)).Save(t).Error; err != nil {
+		return err
+	}
+	return nil
+}

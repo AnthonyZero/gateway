@@ -1,7 +1,10 @@
 package controller
 
 import (
+	"errors"
 	"fmt"
+	"strings"
+	"time"
 
 	"github.com/anthonyzero/gateway/dao"
 	"github.com/anthonyzero/gateway/dto"
@@ -17,6 +20,7 @@ func ServiceRegister(group *gin.RouterGroup) {
 	service := &ServiceController{}
 	group.GET("/service_list", service.ServiceList)
 	group.GET("/service_delete", service.ServiceDelete)
+	group.POST("/add_http", service.ServiceAddHTTP)
 }
 
 // ServiceList godoc
@@ -148,5 +152,111 @@ func (service *ServiceController) ServiceDelete(c *gin.Context) {
 		middleware.ResponseError(c, middleware.BusinessErrorCode, err)
 		return
 	}
+	middleware.ResponseSuccess(c, "")
+}
+
+// ServiceAddHTTP godoc
+// @Summary 添加HTTP服务
+// @Description 添加HTTP服务
+// @Tags 服务管理
+// @ID /service/add_http
+// @Accept  json
+// @Produce  json
+// @Param body body dto.ServiceAddHTTPInput true "body"
+// @Success 200 {object} middleware.Response{data=string} "success"
+// @Router /service/add_http [post]
+func (service *ServiceController) ServiceAddHTTP(c *gin.Context) {
+	params := &dto.ServiceAddHTTPInput{}
+	if err := params.BindValidParam(c); err != nil {
+		middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
+		return
+	}
+
+	if len(strings.Split(params.IpList, ",")) != len(strings.Split(params.WeightList, ",")) {
+		middleware.ResponseError(c, middleware.ParamCheckErrorCode, errors.New("IP列表与权重列表数量不一致"))
+		return
+	}
+
+	//db连接
+	tx, err := lib.GetGormPool("default")
+	if err != nil {
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	tx = tx.Begin()
+	serviceInfo := &dao.ServiceInfo{ServiceName: params.ServiceName}
+	if _, err = serviceInfo.Find(c, tx, serviceInfo); err == nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.RecordExistCode, errors.New("服务已存在"))
+		return
+	}
+
+	httpUrl := &dao.HttpRule{RuleType: params.RuleType, Rule: params.Rule}
+	if _, err := httpUrl.Find(c, tx, httpUrl); err == nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.RecordExistCode, errors.New("服务接入前缀或域名已存在"))
+		return
+	}
+
+	//服务基本信息
+	serviceModel := &dao.ServiceInfo{
+		LoadType:    0,
+		ServiceName: params.ServiceName,
+		ServiceDesc: params.ServiceDesc,
+		IsDelete:    0,
+		CreatedAt:   time.Now(),
+	}
+	if err := serviceModel.Save(c, tx); err != nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	//serviceModel.ID HTTP服务信息
+	httpRule := &dao.HttpRule{
+		ServiceID:      serviceModel.ID,
+		RuleType:       params.RuleType,
+		Rule:           params.Rule,
+		NeedHttps:      params.NeedHttps,
+		NeedStripUri:   params.NeedStripUri,
+		NeedWebsocket:  params.NeedWebsocket,
+		UrlRewrite:     params.UrlRewrite,
+		HeaderTransfor: params.HeaderTransfor,
+	}
+	if err := httpRule.Save(c, tx); err != nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	//访问控制信息
+	accessControl := &dao.AccessControl{
+		ServiceID:         serviceModel.ID,
+		OpenAuth:          params.OpenAuth,
+		BlackList:         params.BlackList,
+		WhiteList:         params.WhiteList,
+		ClientIPFlowLimit: params.ClientipFlowLimit,
+		ServiceFlowLimit:  params.ServiceFlowLimit,
+	}
+	if err := accessControl.Save(c, tx); err != nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	//负载均衡信息
+	loadbalance := &dao.LoadBalance{
+		ServiceID:              serviceModel.ID,
+		RoundType:              params.RoundType,
+		IpList:                 params.IpList,
+		WeightList:             params.WeightList,
+		UpstreamConnectTimeout: params.UpstreamConnectTimeout,
+		UpstreamHeaderTimeout:  params.UpstreamHeaderTimeout,
+		UpstreamIdleTimeout:    params.UpstreamIdleTimeout,
+		UpstreamMaxIdle:        params.UpstreamMaxIdle,
+	}
+	if err := loadbalance.Save(c, tx); err != nil {
+		tx.Rollback()
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	tx.Commit()
 	middleware.ResponseSuccess(c, "")
 }
