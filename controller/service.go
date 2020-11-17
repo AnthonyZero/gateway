@@ -316,6 +316,8 @@ func (service *ServiceController) ServiceUpdateHTTP(c *gin.Context) {
 	}
 
 	httpRule := serviceDetail.HTTPRule
+	httpRule.RuleType = params.RuleType
+	httpRule.Rule = params.Rule
 	httpRule.NeedHttps = params.NeedHttps
 	httpRule.NeedStripUri = params.NeedStripUri
 	httpRule.NeedWebsocket = params.NeedWebsocket
