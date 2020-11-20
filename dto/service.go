@@ -138,8 +138,8 @@ func (params *ServiceAddGrpcInput) GetValidParams(c *gin.Context) error {
 type ServiceUpdateGrpcInput struct {
 	ID int64 `json:"id" form:"id" comment:"服务ID" validate:"required"`
 	//ServiceName       string `json:"service_name" form:"service_name" comment:"服务名称" validate:"required,valid_service_name"`
-	ServiceDesc string `json:"service_desc" form:"service_desc" comment:"服务描述" validate:"required"`
-	//Port              int    `json:"port" form:"port" comment:"端口，需要设置8001-8999范围内" validate:"required,min=8001,max=8999"`
+	ServiceDesc       string `json:"service_desc" form:"service_desc" comment:"服务描述" validate:"required"`
+	Port              int    `json:"port" form:"port" comment:"端口，需要设置8001-8999范围内" validate:"required,min=8001,max=8999"`
 	HeaderTransfor    string `json:"header_transfor" form:"header_transfor" comment:"metadata转换" validate:"valid_header_transfor"`
 	OpenAuth          int    `json:"open_auth" form:"open_auth" comment:"是否开启权限验证" validate:""`
 	BlackList         string `json:"black_list" form:"black_list" comment:"黑名单IP，以逗号间隔，白名单优先级高于黑名单" validate:"valid_iplist"`
@@ -180,8 +180,8 @@ func (params *ServiceAddTcpInput) GetValidParams(c *gin.Context) error {
 }
 
 type ServiceUpdateTcpInput struct {
-	ID                int64  `json:"id" form:"id" comment:"服务ID" validate:"required"`
-	ServiceName       string `json:"service_name" form:"service_name" comment:"服务名称" validate:"required,valid_service_name"`
+	ID int64 `json:"id" form:"id" comment:"服务ID" validate:"required"`
+	//ServiceName       string `json:"service_name" form:"service_name" comment:"服务名称" validate:"required,valid_service_name"`
 	ServiceDesc       string `json:"service_desc" form:"service_desc" comment:"服务描述" validate:"required"`
 	Port              int    `json:"port" form:"port" comment:"端口，需要设置8001-8999范围内" validate:"required,min=8001,max=8999"`
 	OpenAuth          int    `json:"open_auth" form:"open_auth" comment:"是否开启权限验证" validate:""`
