@@ -23,6 +23,7 @@ const (
 	CustomizeCode           ResponseCode = 1000
 	ParamCheckErrorCode     ResponseCode = 1001
 	RecordExistCode         ResponseCode = 1002
+	ServiceNotMatchCode     ResponseCode = 1003
 	GROUPALL_SAVE_FLOWERROR ResponseCode = 2001
 )
 
