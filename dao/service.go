@@ -1,10 +1,13 @@
 package dao
 
 import (
+	"errors"
 	"net/http/httptest"
+	"strings"
 	"sync"
 
 	"github.com/anthonyzero/gateway/dto"
+	"github.com/anthonyzero/gateway/public"
 	"github.com/e421083458/golang_common/lib"
 	"github.com/gin-gonic/gin"
 )
@@ -76,4 +79,34 @@ func (s *ServiceManager) LoadOnce() error {
 		}
 	})
 	return s.err
+}
+
+//根据域名或者前缀 匹配找到对应的服务
+func (s *ServiceManager) HTTPAccessMode(c *gin.Context) (*ServiceDetail, error) {
+	//1、前缀匹配 /abc ==> serviceSlice.rule
+	//2、域名匹配 www.test.com ==> serviceSlice.rule
+	//host c.Request.Host
+	//path c.Request.URL.Path
+	host := c.Request.Host
+	host = host[0:strings.Index(host, ":")]
+	path := c.Request.URL.Path
+	//从serviceManage 中的服务数据 查找
+	for _, serviceItem := range s.ServiceSlice {
+		//查找HTTP服务
+		if serviceItem.Info.LoadType != public.LoadTypeHTTP {
+			continue
+		}
+		if serviceItem.HTTPRule.RuleType == public.HTTPRuleTypeDomain {
+			if serviceItem.HTTPRule.Rule == host {
+				return serviceItem, nil
+			}
+		}
+		if serviceItem.HTTPRule.RuleType == public.HTTPRuleTypePrefixURL {
+			//  /abc   /ab
+			if strings.HasPrefix(path, serviceItem.HTTPRule.Rule) {
+				return serviceItem, nil
+			}
+		}
+	}
+	return nil, errors.New("not matched service")
 }
