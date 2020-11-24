@@ -6,6 +6,8 @@ import (
 	"os/signal"
 	"syscall"
 
+	"github.com/anthonyzero/gateway/dao"
+
 	"github.com/anthonyzero/gateway/http_proxy_router"
 
 	"github.com/anthonyzero/gateway/router"
@@ -49,6 +51,7 @@ func main() {
 		lib.InitModule(*config, []string{"base", "mysql", "redis"})
 		defer lib.Destroy()
 
+		dao.ServiceManagerHandler.LoadOnce() //加载服务信息到内存
 		//启动各种代理服务
 		go func() {
 			http_proxy_router.HttpServerRun()

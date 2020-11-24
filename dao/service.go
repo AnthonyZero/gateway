@@ -87,13 +87,13 @@ func (s *ServiceManager) HTTPAccessMode(c *gin.Context) (*ServiceDetail, error) 
 	//2、域名匹配 www.test.com ==> serviceSlice.rule
 	//host c.Request.Host
 	//path c.Request.URL.Path
-	host := c.Request.Host
+	host := c.Request.Host //www.test.com:8080 带端口
 	host = host[0:strings.Index(host, ":")]
-	path := c.Request.URL.Path
+	path := c.Request.URL.Path //url前缀
 	//从serviceManage 中的服务数据 查找
 	for _, serviceItem := range s.ServiceSlice {
 		//查找HTTP服务
-		if serviceItem.Info.LoadType != public.LoadTypeHTTP {
+		if serviceItem.Info.LoadType != public.LoadTypeHTTP { //不是HTTP服务跳过
 			continue
 		}
 		if serviceItem.HTTPRule.RuleType == public.HTTPRuleTypeDomain {
@@ -108,5 +108,29 @@ func (s *ServiceManager) HTTPAccessMode(c *gin.Context) (*ServiceDetail, error) 
 			}
 		}
 	}
-	return nil, errors.New("not matched service")
+	return nil, errors.New("根据域名或者前缀 未匹配到对应的服务")
+}
+
+//获取TCP服务列表
+func (s *ServiceManager) GetTcpServiceList() []*ServiceDetail {
+	list := []*ServiceDetail{}
+	for _, serverItem := range s.ServiceSlice {
+		tempItem := serverItem
+		if tempItem.Info.LoadType == public.LoadTypeTCP {
+			list = append(list, tempItem)
+		}
+	}
+	return list
+}
+
+//获取GRPC服务列表
+func (s *ServiceManager) GetGrpcServiceList() []*ServiceDetail {
+	list := []*ServiceDetail{}
+	for _, serverItem := range s.ServiceSlice {
+		tempItem := serverItem
+		if tempItem.Info.LoadType == public.LoadTypeGRPC {
+			list = append(list, tempItem)
+		}
+	}
+	return list
 }
