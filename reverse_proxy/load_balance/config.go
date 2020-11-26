@@ -8,6 +8,7 @@ type LoadBalanceConf interface {
 	UpdateConf(conf []string)
 }
 
+//用于添加ip信息到负载均衡策略
 type Observer interface {
 	Update()
 }

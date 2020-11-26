@@ -1,9 +1,12 @@
 package dao
 
 import (
+	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/anthonyzero/gateway/public"
+	"github.com/anthonyzero/gateway/reverse_proxy/load_balance"
 	"github.com/e421083458/gorm"
 	"github.com/gin-gonic/gin"
 )
@@ -45,4 +48,79 @@ func (t *LoadBalance) Save(c *gin.Context, tx *gorm.DB) error {
 //获取负载均衡的IP列表
 func (t *LoadBalance) GetIPListByModel() []string {
 	return strings.Split(t.IpList, ",")
+}
+
+//获取权重列表
+func (t *LoadBalance) GetWeightListByModel() []string {
+	return strings.Split(t.WeightList, ",")
+}
+
+//负载均衡器管理
+var LoadBalancerHandler *LoadBalancer
+
+type LoadBalancer struct {
+	LoadBanlanceMap   map[string]*LoadBalancerItem
+	LoadBanlanceSlice []*LoadBalancerItem
+	Locker            sync.RWMutex
+}
+
+type LoadBalancerItem struct {
+	LoadBanlance load_balance.LoadBalance
+	ServiceName  string
+}
+
+func NewLoadBalancer() *LoadBalancer {
+	return &LoadBalancer{
+		LoadBanlanceMap:   map[string]*LoadBalancerItem{},
+		LoadBanlanceSlice: []*LoadBalancerItem{},
+		Locker:            sync.RWMutex{},
+	}
+}
+
+//init()函数是在文件包首次被加载的时候执行，且只执行一次
+func init() {
+	LoadBalancerHandler = NewLoadBalancer()
+}
+
+//通过服务详情 获取对应的负载均衡策略
+func (lbr *LoadBalancer) GetLoadBalancer(service *ServiceDetail) (load_balance.LoadBalance, error) {
+	//有直接返回
+	for _, lbrItem := range lbr.LoadBanlanceSlice {
+		if lbrItem.ServiceName == service.Info.ServiceName {
+			return lbrItem.LoadBanlance, nil
+		}
+	}
+	schema := "http://"
+	if service.HTTPRule.NeedHttps == 1 {
+		schema = "https://"
+	}
+	if service.Info.LoadType == public.LoadTypeTCP || service.Info.LoadType == public.LoadTypeGRPC {
+		schema = ""
+	}
+	//获取下游的ip 和权重（如果有）
+	ipList := service.LoadBalance.GetIPListByModel()
+	weightList := service.LoadBalance.GetWeightListByModel()
+	ipConf := map[string]string{} //ip <-> 权重
+	for ipIndex, ipItem := range ipList {
+		ipConf[ipItem] = weightList[ipIndex]
+	}
+	//fmt.Println("ipConf", ipConf)
+	mConf, err := load_balance.NewLoadBalanceCheckConf(fmt.Sprintf("%s%s", schema, "%s"), ipConf)
+	if err != nil {
+		return nil, err
+	}
+	//通过类型值和配置 初始化负载均衡策略
+	lb := load_balance.LoadBanlanceFactorWithConf(load_balance.LbType(service.LoadBalance.RoundType), mConf)
+
+	//save to map and slice
+	lbItem := &LoadBalancerItem{
+		LoadBanlance: lb,
+		ServiceName:  service.Info.ServiceName,
+	}
+	lbr.LoadBanlanceSlice = append(lbr.LoadBanlanceSlice, lbItem)
+
+	lbr.Locker.Lock()
+	defer lbr.Locker.Unlock()
+	lbr.LoadBanlanceMap[service.Info.ServiceName] = lbItem
+	return lb, nil
 }
