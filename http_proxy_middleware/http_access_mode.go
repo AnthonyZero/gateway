@@ -20,6 +20,7 @@ func HTTPAccessModeMiddleware() gin.HandlerFunc {
 			return
 		}
 		fmt.Println("matched service", public.Obj2Json(service))
+		//把服务信息 存到gin的上下文  以方便后面的中间件取服务信息
 		c.Set("service", service)
 		c.Next()
 	}
