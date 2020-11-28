@@ -25,6 +25,7 @@ const (
 	RecordExistCode         ResponseCode = 1002
 	ServiceNotMatchCode     ResponseCode = 1003
 	GROUPALL_SAVE_FLOWERROR ResponseCode = 2001
+	GATEWAY_ERROR_CODE      ResponseCode = 2002
 	REVERSE_PROXY_ERROR     ResponseCode = 9999
 )
 
