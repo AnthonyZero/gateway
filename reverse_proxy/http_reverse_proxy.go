@@ -1,9 +1,13 @@
 package reverse_proxy
 
 import (
+	"bytes"
+	"compress/gzip"
+	"io/ioutil"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
+	"strconv"
 	"strings"
 
 	"github.com/anthonyzero/gateway/middleware"
@@ -47,28 +51,28 @@ func NewLoadBalanceReverseProxy(c *gin.Context, lb load_balance.LoadBalance, tra
 		}
 
 		//todo 优化点2
-		//var payload []byte
-		//var readErr error
-		//
-		//if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
-		//	gr, err := gzip.NewReader(resp.Body)
-		//	if err != nil {
-		//		return err
-		//	}
-		//	payload, readErr = ioutil.ReadAll(gr)
-		//	resp.Header.Del("Content-Encoding")
-		//} else {
-		//	payload, readErr = ioutil.ReadAll(resp.Body)
-		//}
-		//if readErr != nil {
-		//	return readErr
-		//}
-		//
-		//c.Set("status_code", resp.StatusCode)
-		//c.Set("payload", payload)
-		//resp.Body = ioutil.NopCloser(bytes.NewBuffer(payload))
-		//resp.ContentLength = int64(len(payload))
-		//resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
+		var payload []byte
+		var readErr error
+
+		if strings.Contains(resp.Header.Get("Content-Encoding"), "gzip") {
+			gr, err := gzip.NewReader(resp.Body)
+			if err != nil {
+				return err
+			}
+			payload, readErr = ioutil.ReadAll(gr)
+			resp.Header.Del("Content-Encoding")
+		} else {
+			payload, readErr = ioutil.ReadAll(resp.Body)
+		}
+		if readErr != nil {
+			return readErr
+		}
+
+		c.Set("status_code", resp.StatusCode)
+		c.Set("payload", payload)
+		resp.Body = ioutil.NopCloser(bytes.NewBuffer(payload))
+		resp.ContentLength = int64(len(payload))
+		resp.Header.Set("Content-Length", strconv.FormatInt(int64(len(payload)), 10))
 		return nil
 	}
 
@@ -77,7 +81,7 @@ func NewLoadBalanceReverseProxy(c *gin.Context, lb load_balance.LoadBalance, tra
 	errFunc := func(w http.ResponseWriter, r *http.Request, err error) {
 		middleware.ResponseError(c, middleware.REVERSE_PROXY_ERROR, err)
 	}
-	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyFunc, ErrorHandler: errFunc}
+	return &httputil.ReverseProxy{Director: director, ModifyResponse: modifyFunc, Transport: trans, ErrorHandler: errFunc}
 }
 
 func singleJoiningSlash(a, b string) string {

@@ -93,6 +93,8 @@ func (lbr *LoadBalancer) GetLoadBalancer(service *ServiceDetail) (load_balance.L
 			return lbrItem.LoadBanlance, nil
 		}
 	}
+	//通过HTTPRule 是否开启HTTPS 如果是HTTP访问但是要求开启HTTPS的话 trasnport会报错
+	//tls: first record does not look like a TLS handshake
 	schema := "http://"
 	if service.HTTPRule.NeedHttps == 1 {
 		schema = "https://"
