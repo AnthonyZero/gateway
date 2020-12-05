@@ -15,7 +15,9 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 			"message": "pong",
 		})
 	})
-	router.Use(http_proxy_middleware.HTTPAccessModeMiddleware(),
+	router.Use(
+		http_proxy_middleware.HTTPAccessModeMiddleware(),
+		http_proxy_middleware.HTTPHeaderTransferMiddleware(),
 		http_proxy_middleware.HTTPReverseProxyMiddleware())
 	return router
 }
