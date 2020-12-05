@@ -11,7 +11,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-//url 重写 ^/test_http_service/abb/(.*) /test_http_service/bba/$1
+//url重写  ^/test_http_service/abb/(.*) /test_http_service/bba/$1
 func HTTPUrlRewriteMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		serverInterface, ok := c.Get("service")
