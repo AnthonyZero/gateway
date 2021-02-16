@@ -107,14 +107,19 @@ func (service *ServiceController) ServiceList(c *gin.Context) {
 		}
 		//服务IP列表
 		ipList := serviceDetail.LoadBalance.GetIPListByModel()
+		counter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + item.ServiceName)
+		if err != nil {
+			middleware.ResponseError(c, middleware.InternalErrorCode, err)
+			return
+		}
 		outItem := dto.ServiceListItemOutput{
 			ID:          item.ID,
 			LoadType:    item.LoadType,
 			ServiceName: item.ServiceName,
 			ServiceDesc: item.ServiceDesc,
 			ServiceAddr: serviceAddr,
-			Qpd:         0,
-			Qps:         0,
+			Qps:         counter.QPS,
+			Qpd:         counter.TotalCount,
 			TotalNode:   len(ipList),
 		}
 		outList = append(outList, outItem)
