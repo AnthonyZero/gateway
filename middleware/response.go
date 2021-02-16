@@ -26,6 +26,7 @@ const (
 	ServiceNotMatchCode     ResponseCode = 1003
 	GROUPALL_SAVE_FLOWERROR ResponseCode = 2001
 	GATEWAY_ERROR_CODE      ResponseCode = 2002
+	REQUEST_LIMITED_CODE    ResponseCode = 2003
 	REVERSE_PROXY_ERROR     ResponseCode = 9999
 )
 
