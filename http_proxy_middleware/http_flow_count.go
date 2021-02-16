@@ -2,8 +2,6 @@ package http_proxy_middleware
 
 import (
 	"errors"
-	"fmt"
-	"time"
 
 	"github.com/anthonyzero/gateway/dao"
 	"github.com/anthonyzero/gateway/middleware"
@@ -31,8 +29,8 @@ func HTTPFlowCountMiddleware() gin.HandlerFunc {
 		}
 		totalCounter.Increase()
 
-		dayCount, _ := totalCounter.GetDayData(time.Now())
-		fmt.Printf("totalCounter qps:%v,dayCount:%v", totalCounter.QPS, dayCount)
+		// dayCount, _ := totalCounter.GetDayData(time.Now())
+		// fmt.Printf("totalCounter qps:%v,dayCount:%v", totalCounter.QPS, dayCount)
 		serviceCounter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + serviceDetail.Info.ServiceName)
 		if err != nil {
 			middleware.ResponseError(c, middleware.BusinessErrorCode, err)
@@ -41,8 +39,8 @@ func HTTPFlowCountMiddleware() gin.HandlerFunc {
 		}
 		serviceCounter.Increase()
 
-		dayServiceCount, _ := serviceCounter.GetDayData(time.Now())
-		fmt.Printf("serviceCounter qps:%v,dayCount:%v", serviceCounter.QPS, dayServiceCount)
+		// dayServiceCount, _ := serviceCounter.GetDayData(time.Now())
+		// fmt.Printf("serviceCounter qps:%v,dayCount:%v", serviceCounter.QPS, dayServiceCount)
 		c.Next()
 	}
 }

@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"time"
 
 	"github.com/anthonyzero/gateway/dao"
 	"github.com/anthonyzero/gateway/dto"
@@ -49,16 +50,17 @@ func (service *DashboardController) PanelGroupData(c *gin.Context) {
 		middleware.ResponseError(c, middleware.InternalErrorCode, err)
 		return
 	}
-	// counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
-	// if err != nil {
-	// 	middleware.ResponseError(c, middleware.InternalErrorCode, err)
-	// 	return
-	// }
+	//流量统计 当前QPS 当日请求量
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
+	if err != nil {
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
 	out := &dto.PanelGroupDataOutput{
-		ServiceNum: serviceNum,
-		AppNum:     appNum,
-		// TodayRequestNum: counter.TotalCount,
-		// CurrentQPS:      counter.QPS,
+		ServiceNum:      serviceNum,
+		AppNum:          appNum,
+		TodayRequestNum: counter.TotalCount,
+		CurrentQPS:      counter.QPS,
 	}
 	middleware.ResponseSuccess(c, out)
 }
@@ -111,26 +113,26 @@ func (service *DashboardController) ServiceStat(c *gin.Context) {
 // @Success 200 {object} middleware.Response{data=dto.ServiceStatOutput} "success"
 // @Router /dashboard/flow_stat [get]
 func (service *DashboardController) FlowStat(c *gin.Context) {
-	// counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
-	// if err != nil {
-	// 	middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
-	// 	return
-	// }
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowTotal)
+	if err != nil {
+		middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
+		return
+	}
 	todayList := []int64{}
-	// currentTime := time.Now()
-	// for i := 0; i <= currentTime.Hour(); i++ {
-	// 	dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-	// 	hourData, _ := counter.GetHourData(dateTime)
-	// 	todayList = append(todayList, hourData)
-	// }
+	currentTime := time.Now()
+	for i := 0; i <= currentTime.Hour(); i++ {
+		dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		todayList = append(todayList, hourData)
+	}
 
 	yesterdayList := []int64{}
-	// yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
-	// for i := 0; i <= 23; i++ {
-	// 	dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-	// 	hourData, _ := counter.GetHourData(dateTime)
-	// 	yesterdayList = append(yesterdayList, hourData)
-	// }
+	yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
+	for i := 0; i <= 23; i++ {
+		dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		hourData, _ := counter.GetHourData(dateTime)
+		yesterdayList = append(yesterdayList, hourData)
+	}
 	middleware.ResponseSuccess(c, &dto.ServiceStatOutput{
 		Today:     todayList,
 		Yesterday: yesterdayList,
