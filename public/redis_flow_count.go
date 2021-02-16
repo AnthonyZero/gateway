@@ -71,11 +71,13 @@ func NewRedisFlowCountService(appID string, interval time.Duration) *RedisFlowCo
 	return reqCounter
 }
 
+// "flow_day_count_20210216_flow_service_test_http_service" 这样的key
 func (o *RedisFlowCountService) GetDayKey(t time.Time) string {
 	dayStr := t.In(lib.TimeLocation).Format("20060102")
 	return fmt.Sprintf("%s_%s_%s", RedisFlowDayKey, dayStr, o.AppID)
 }
 
+//"flow_hour_count_2021021617_flow_service_test_http_service" 这样的key
 func (o *RedisFlowCountService) GetHourKey(t time.Time) string {
 	hourStr := t.In(lib.TimeLocation).Format("2006010215")
 	return fmt.Sprintf("%s_%s_%s", RedisFlowHourKey, hourStr, o.AppID)

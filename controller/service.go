@@ -420,49 +420,53 @@ func (service *ServiceController) ServiceDetail(c *gin.Context) {
 // @Success 200 {object} middleware.Response{data=dto.ServiceStatOutput} "success"
 // @Router /service/stat [get]
 func (service *ServiceController) ServiceStat(c *gin.Context) {
-	// params := &dto.ServiceDeleteInput{}
-	// if err := params.BindValidParam(c); err != nil {
-	// 	middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
-	// 	return
-	// }
+	params := &dto.ServiceDeleteInput{}
+	if err := params.BindValidParam(c); err != nil {
+		middleware.ResponseError(c, middleware.ParamCheckErrorCode, err)
+		return
+	}
 
-	// //读取基本信息
-	// tx, err := lib.GetGormPool("default")
-	// if err != nil {
-	// 	middleware.ResponseError(c, middleware.InternalErrorCode, err)
-	// 	return
-	// }
-	// serviceInfo := &dao.ServiceInfo{ID: params.ID}
-	// serviceDetail, err := serviceInfo.ServiceDetail(c, tx, serviceInfo)
-	// if err != nil {
-	// 	middleware.ResponseError(c, middleware.BusinessErrorCode, err)
-	// 	return
-	// }
+	//读取基本信息
+	tx, err := lib.GetGormPool("default")
+	if err != nil {
+		middleware.ResponseError(c, middleware.InternalErrorCode, err)
+		return
+	}
+	serviceInfo := &dao.ServiceInfo{ID: params.ID}
+	serviceDetail, err := serviceInfo.ServiceDetail(c, tx, serviceInfo)
+	if err != nil {
+		middleware.ResponseError(c, middleware.BusinessErrorCode, err)
+		return
+	}
+	//获取服务的计数器
+	counter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + serviceDetail.Info.ServiceName)
+	if err != nil {
+		middleware.ResponseError(c, middleware.BusinessErrorCode, err)
+		return
+	}
+	todayList := []int64{}
+	//今天的数据 比如9点 那么就从0到9点
+	currentTime := time.Now()
+	for i := 0; i <= currentTime.Hour(); i++ {
+		dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		//获取当前小时的统计值
+		hourData, _ := counter.GetHourData(dateTime)
+		todayList = append(todayList, hourData)
+	}
 
-	// counter, err := public.FlowCounterHandler.GetCounter(public.FlowServicePrefix + serviceDetail.Info.ServiceName)
-	// if err != nil {
-	// 	middleware.ResponseError(c, middleware.BusinessErrorCode, err)
-	// 	return
-	// }
-	// todayList := []int64{}
-	// currentTime := time.Now()
-	// for i := 0; i <= currentTime.Hour(); i++ {
-	// 	dateTime := time.Date(currentTime.Year(), currentTime.Month(), currentTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-	// 	hourData, _ := counter.GetHourData(dateTime)
-	// 	todayList = append(todayList, hourData)
-	// }
-
-	// yesterdayList := []int64{}
-	// yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24))
-	// for i := 0; i <= 23; i++ {
-	// 	dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
-	// 	hourData, _ := counter.GetHourData(dateTime)
-	// 	yesterdayList = append(yesterdayList, hourData)
-	// }
-	// middleware.ResponseSuccess(c, &dto.ServiceStatOutput{
-	// 	Today:     todayList,
-	// 	Yesterday: yesterdayList,
-	// })
+	//昨天24小时的统计值
+	yesterdayList := []int64{}
+	yesterTime := currentTime.Add(-1 * time.Duration(time.Hour*24)) //减24小时
+	for i := 0; i <= 23; i++ {
+		dateTime := time.Date(yesterTime.Year(), yesterTime.Month(), yesterTime.Day(), i, 0, 0, 0, lib.TimeLocation)
+		//获取小时的统计值
+		hourData, _ := counter.GetHourData(dateTime)
+		yesterdayList = append(yesterdayList, hourData)
+	}
+	middleware.ResponseSuccess(c, &dto.ServiceStatOutput{
+		Today:     todayList,
+		Yesterday: yesterdayList,
+	})
 }
 
 // ServiceAddHttp godoc
