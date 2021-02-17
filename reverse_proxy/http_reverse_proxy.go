@@ -20,7 +20,6 @@ func NewLoadBalanceReverseProxy(c *gin.Context, lb load_balance.LoadBalance, tra
 	director := func(req *http.Request) {
 		//根据负载均衡策略 获取负载的服务器地址
 		nextAddr, err := lb.Get(req.URL.String())
-		//todo 优化点3
 		if err != nil || nextAddr == "" {
 			panic("get next addr fail")
 		}

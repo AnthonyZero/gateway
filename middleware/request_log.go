@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"bytes"
+	"io/ioutil"
+	"time"
+
 	"github.com/anthonyzero/gateway/public"
 	"github.com/e421083458/golang_common/lib"
 	"github.com/gin-gonic/gin"
-	"io/ioutil"
-	"time"
 )
 
 // 请求进入日志
@@ -54,8 +55,11 @@ func RequestOutLog(c *gin.Context) {
 
 func RequestLog() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		RequestInLog(c)
-		defer RequestOutLog(c)
+		if lib.GetBoolConf("base.log.file_writer.on") {
+
+			RequestInLog(c)
+			defer RequestOutLog(c)
+		}
 		c.Next()
 	}
 }

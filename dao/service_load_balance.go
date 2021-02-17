@@ -164,7 +164,7 @@ func (t *Transportor) GetTrans(service *ServiceDetail) (*http.Transport, error) 
 		}
 	}
 
-	//todo 优化点5
+	//todo 优化点5 设置默认值
 	if service.LoadBalance.UpstreamConnectTimeout == 0 {
 		service.LoadBalance.UpstreamConnectTimeout = 30
 	}
