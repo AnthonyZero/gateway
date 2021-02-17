@@ -1,7 +1,9 @@
 package http_proxy_router
 
 import (
+	"github.com/anthonyzero/gateway/controller"
 	"github.com/anthonyzero/gateway/http_proxy_middleware"
+	"github.com/anthonyzero/gateway/middleware"
 	"github.com/gin-gonic/gin"
 )
 
@@ -15,6 +17,13 @@ func InitRouter(middlewares ...gin.HandlerFunc) *gin.Engine {
 			"message": "pong",
 		})
 	})
+
+	oauth := router.Group("/oauth")
+	oauth.Use(middleware.TranslationMiddleware())
+	{
+		controller.OAuthRegister(oauth)
+	}
+
 	router.Use(
 		http_proxy_middleware.HTTPAccessModeMiddleware(),     //匹配到具体服务
 		http_proxy_middleware.HTTPFlowCountMiddleware(),      // 计数器

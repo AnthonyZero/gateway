@@ -52,6 +52,7 @@ func main() {
 		defer lib.Destroy()
 
 		dao.ServiceManagerHandler.LoadOnce() //加载服务信息到内存
+		dao.AppManagerHandler.LoadOnce()     //加载租户信息到内存
 		//启动各种代理服务
 		go func() {
 			http_proxy_router.HttpServerRun()

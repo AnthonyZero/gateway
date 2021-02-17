@@ -1,10 +1,13 @@
 package dao
 
 import (
+	"net/http/httptest"
+	"sync"
 	"time"
 
 	"github.com/anthonyzero/gateway/dto"
 	"github.com/anthonyzero/gateway/public"
+	"github.com/e421083458/golang_common/lib"
 	"github.com/e421083458/gorm"
 	"github.com/gin-gonic/gin"
 )
@@ -62,4 +65,58 @@ func (t *App) APPList(c *gin.Context, tx *gorm.DB, params *dto.APPListInput) ([]
 		return nil, 0, err
 	}
 	return list, count, nil
+}
+
+var AppManagerHandler *AppManager
+
+func init() {
+	AppManagerHandler = NewAppManager()
+}
+
+type AppManager struct {
+	AppMap   map[string]*App //appid -> 租户信息
+	AppSlice []*App
+	Locker   sync.RWMutex
+	init     sync.Once
+	err      error
+}
+
+func NewAppManager() *AppManager {
+	return &AppManager{
+		AppMap:   map[string]*App{},
+		AppSlice: []*App{},
+		Locker:   sync.RWMutex{},
+		init:     sync.Once{},
+	}
+}
+
+func (s *AppManager) GetAppList() []*App {
+	return s.AppSlice
+}
+
+//加载租户信息
+func (s *AppManager) LoadOnce() error {
+	s.init.Do(func() {
+		appInfo := &App{}
+		c, _ := gin.CreateTestContext(httptest.NewRecorder())
+		tx, err := lib.GetGormPool("default")
+		if err != nil {
+			s.err = err
+			return
+		}
+		params := &dto.APPListInput{PageNo: 1, PageSize: 99999}
+		list, _, err := appInfo.APPList(c, tx, params)
+		if err != nil {
+			s.err = err
+			return
+		}
+		s.Locker.Lock()
+		defer s.Locker.Unlock()
+		for _, listItem := range list {
+			tmpItem := listItem
+			s.AppMap[listItem.AppID] = &tmpItem
+			s.AppSlice = append(s.AppSlice, &tmpItem)
+		}
+	})
+	return s.err
 }
